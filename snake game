@@ -1,0 +1,78 @@
+import pygame
+import random
+
+# Initialize pygame
+pygame.init()
+
+# Screen size
+WIDTH, HEIGHT = 600, 400
+CELL_SIZE = 20
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game")
+
+# Colors
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (200, 0, 0)
+BLACK = (0, 0, 0)
+
+# Clock and speed
+clock = pygame.time.Clock()
+speed = 10
+
+# Snake initialization
+snake = [(100, 50), (80, 50), (60, 50)]
+snake_dir = (20, 0)  # Initially moving right
+
+# Food initialization
+def spawn_food():
+    return (
+        random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE) * CELL_SIZE,
+        random.randint(0, (HEIGHT - CELL_SIZE) // CELL_SIZE) * CELL_SIZE
+    )
+
+food = spawn_food()
+
+# Game loop
+running = True
+while running:
+    clock.tick(speed)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        # Movement control
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and snake_dir != (0, CELL_SIZE):
+                snake_dir = (0, -CELL_SIZE)
+            elif event.key == pygame.K_DOWN and snake_dir != (0, -CELL_SIZE):
+                snake_dir = (0, CELL_SIZE)
+            elif event.key == pygame.K_LEFT and snake_dir != (CELL_SIZE, 0):
+                snake_dir = (-CELL_SIZE, 0)
+            elif event.key == pygame.K_RIGHT and snake_dir != (-CELL_SIZE, 0):
+                snake_dir = (CELL_SIZE, 0)
+
+    # Move snake
+    new_head = (snake[0][0] + snake_dir[0], snake[0][1] + snake_dir[1])
+    snake.insert(0, new_head)
+
+    # Check collision with food
+    if snake[0] == food:
+        food = spawn_food()  # Don't remove tail (snake grows)
+    else:
+        snake.pop()  # Remove tail to keep length same
+
+    # Check collision with wall or self
+    if (new_head[0] < 0 or new_head[0] >= WIDTH or
+        new_head[1] < 0 or new_head[1] >= HEIGHT or
+        new_head in snake[1:]):
+        running = False
+
+    # Drawing
+    screen.fill(BLACK)
+    for segment in snake:
+        pygame.draw.rect(screen, GREEN, (*segment, CELL_SIZE, CELL_SIZE))
+    pygame.draw.rect(screen, RED, (*food, CELL_SIZE, CELL_SIZE))
+    pygame.display.update()
+
+pygame.quit()
